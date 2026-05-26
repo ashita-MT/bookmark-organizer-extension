@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>收藏夹整理页</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body class="launcher-body">
+    <main class="launcher">
+      <div class="launcher-top">
+        <div>
+          <p class="eyebrow">收藏夹整理</p>
+          <h1>打开收藏夹页面</h1>
+          <p class="subtitle">每次打开页面都会自动同步当前浏览器收藏夹。</p>
+        </div>
+
+        <div class="theme-tools">
+          <button id="themeToggleButton" class="theme-toggle" type="button">调色</button>
+          <section id="themePanel" class="theme-panel" hidden>
+            <div class="field">
+              <label for="backgroundColorInput">背景颜色</label>
+              <input id="backgroundColorInput" type="color" value="#171717">
+            </div>
+            <div class="field">
+              <label for="textColorInput">文字颜色</label>
+              <input id="textColorInput" type="color" value="#e1e1e1">
+            </div>
+            <button id="resetThemeButton" class="submit-button" type="button">恢复默认</button>
+          </section>
+        </div>
+      </div>
+
+      <button id="openDashboardButton" class="primary" type="button">打开页面</button>
+      <p id="statusMessage" class="status" aria-live="polite"></p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

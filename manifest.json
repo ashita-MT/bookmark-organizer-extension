@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "收藏夹整理页",
+  "version": "0.1.0",
+  "description": "将当前浏览器收藏夹导入为分类展示页面，便于浏览和整理。",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "tabs"
+  ],
+  "action": {
+    "default_title": "收藏夹整理页",
+    "default_popup": "popup.html"
+  }
+}
