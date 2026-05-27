@@ -1,29 +1,16 @@
-# Bookmark Organizer Extension
-
-An open source Chrome extension that turns your bookmarks into a clean standalone workspace for browsing, searching, and organizing at scale.
+# 书签整理扩展 / Bookmark Organizer Extension
 
 一个把 Chrome 书签整理成独立可视化工作台的浏览器扩展，适合浏览、搜索和批量整理书签。
 
-## Overview
+An open source Chrome extension that turns your bookmarks into a clean standalone workspace for browsing, searching, and organizing at scale.
 
-Instead of managing bookmarks inside the default browser tree, this extension opens them in a dedicated dashboard with folder sections, bookmark cards, search, layout controls, and batch actions.
+## 概览 / Overview
 
 它不会替代 Chrome 书签，而是在保留原生书签数据的前提下，提供一个更适合整理的大屏操作界面。
 
-## Features
+Instead of managing bookmarks inside the default browser tree, this extension opens them in a dedicated dashboard with folder sections, bookmark cards, search, layout controls, and batch actions.
 
-- Open bookmarks in a standalone dashboard instead of a small popup
-- Sync the current Chrome bookmarks tree when the dashboard loads
-- Browse bookmarks by folder structure with card-based presentation
-- Search by bookmark title or URL
-- Collapse and expand folders for cleaner navigation
-- Switch between single-column and double-column layout
-- Batch select items inside a folder
-- Move selected bookmarks or folders to another folder
-- Delete selected bookmarks or folders
-- Rename folders and create new subfolders
-- Reorder folders with drag and drop
-- Customize dashboard theme colors
+## 功能特性 / Features
 
 - 独立页面查看书签，不受弹窗尺寸限制
 - 自动同步当前 Chrome 书签树
@@ -38,12 +25,20 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 - 支持拖拽调整文件夹顺序
 - 支持自定义工作台主题配色
 
-## How It Works
+- Open bookmarks in a standalone dashboard instead of a small popup
+- Sync the current Chrome bookmarks tree when the dashboard loads
+- Browse bookmarks by folder structure with card-based presentation
+- Search by bookmark title or URL
+- Collapse and expand folders for cleaner navigation
+- Switch between single-column and double-column layout
+- Batch select items inside a folder
+- Move selected bookmarks or folders to another folder
+- Delete selected bookmarks or folders
+- Rename folders and create new subfolders
+- Reorder folders with drag and drop
+- Customize dashboard theme colors
 
-1. Open the extension popup.
-2. Launch the dashboard page.
-3. The dashboard reads the current Chrome bookmarks tree.
-4. Browse, search, and organize bookmarks in a larger workspace.
+## 工作方式 / How It Works
 
 
 1. 打开扩展弹窗。
@@ -51,12 +46,12 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 3. 页面自动读取当前 Chrome 书签。
 4. 在更大的界面里完成浏览、搜索和整理。
 
-## Project Structure
+1. Open the extension popup.
+2. Launch the dashboard page.
+3. The dashboard reads the current Chrome bookmarks tree.
+4. Browse, search, and organize bookmarks in a larger workspace.
 
-- `popup.html` / `popup.js`: extension popup entry
-- `dashboard.html` / `dashboard.js`: main bookmark dashboard
-- `popup.css` / `dashboard.css`: UI styles
-- `manifest.json`: Chrome extension manifest
+## 项目结构 / Project Structure
 
 
 - `popup.html` / `popup.js`：扩展弹窗入口
@@ -64,13 +59,12 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 - `popup.css` / `dashboard.css`：界面样式
 - `manifest.json`：扩展权限与入口定义
 
-## Installation
+- `popup.html` / `popup.js`: extension popup entry
+- `dashboard.html` / `dashboard.js`: main bookmark dashboard
+- `popup.css` / `dashboard.css`: UI styles
+- `manifest.json`: Chrome extension manifest
 
-1. Download or clone this repository.
-2. Open `chrome://extensions`.
-3. Enable `Developer mode`.
-4. Click `Load unpacked`.
-5. Select the project folder, for example `..\bookmark-organizer-extension`.
+## 安装方式 / Installation
 
 
 1. 下载或克隆这个仓库。
@@ -79,19 +73,25 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 4. 点击“加载已解压的扩展程序”。
 5. 选择项目目录，例如 `..\bookmark-organizer-extension`。
 
-## Permissions
+1. Download or clone this repository.
+2. Open `chrome://extensions`.
+3. Enable `Developer mode`.
+4. Click `Load unpacked`.
+5. Select the project folder, for example `..\bookmark-organizer-extension`.
 
-- `bookmarks`: read and update bookmark data
-- `storage`: save theme, layout, and UI state
-- `tabs`: open the standalone dashboard page
+## 权限说明 / Permissions
 
 
 - `bookmarks`：读取和整理书签
 - `storage`：保存主题、布局和界面状态
 - `tabs`：打开独立工作台页面
 
-## Current Status
+- `bookmarks`: read and update bookmark data
+- `storage`: save theme, layout, and UI state
+- `tabs`: open the standalone dashboard page
 
-This project is already usable as a visual bookmark organizer and is a good base for future features like duplicate detection, broken link checks, custom sorting, and smarter categorization.
+## 当前状态 / Current Status
 
 当前版本已经可以作为可用的书签整理工具使用，也适合作为后续扩展更高级整理能力的基础。
+
+This project is already usable as a visual bookmark organizer and is a good base for future features like duplicate detection, broken link checks, custom sorting, and smarter categorization.
