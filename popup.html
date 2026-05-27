@@ -9,29 +9,70 @@
   <body class="launcher-body">
     <main class="launcher">
       <div class="launcher-top">
-        <div>
-          <p class="eyebrow">收藏夹整理</p>
-          <h1>打开收藏夹页面</h1>
-          <p class="subtitle">每次打开页面都会自动同步当前浏览器收藏夹。</p>
-        </div>
+        <p id="eyebrowLabel" class="eyebrow">收藏工作台</p>
 
-        <div class="theme-tools">
-          <button id="themeToggleButton" class="theme-toggle" type="button">调色</button>
-          <section id="themePanel" class="theme-panel" hidden>
-            <div class="field">
-              <label for="backgroundColorInput">背景颜色</label>
-              <input id="backgroundColorInput" type="color" value="#171717">
-            </div>
-            <div class="field">
-              <label for="textColorInput">文字颜色</label>
-              <input id="textColorInput" type="color" value="#e1e1e1">
-            </div>
-            <button id="resetThemeButton" class="submit-button" type="button">恢复默认</button>
-          </section>
+        <div class="toolbar-actions">
+          <button id="languageToggleButton" class="language-toggle" type="button">中 / EN</button>
+
+          <div class="theme-tools">
+            <button id="themeToggleButton" class="theme-toggle" type="button">外观</button>
+            <section id="themePanel" class="theme-panel" hidden>
+              <div class="theme-panel__header">
+                <h2 id="themePanelTitle">外观</h2>
+                <p id="themePanelDescription">调整字体颜色，并把背景图缓存到本地后用于工作台。</p>
+              </div>
+
+              <div class="field">
+                <label id="textColorLabel" for="textColorInput">字体颜色</label>
+                <input id="textColorInput" type="color" value="#dce7f5">
+              </div>
+
+              <div class="field">
+                <label id="backgroundFileLabel" for="backgroundFileInput">本地背景图</label>
+                <input id="backgroundFileInput" class="file-input" type="file" accept="image/*">
+              </div>
+
+              <div class="field">
+                <label id="backgroundUrlLabel" for="backgroundUrlInput">背景图网址</label>
+                <div class="stack">
+                  <input
+                    id="backgroundUrlInput"
+                    type="url"
+                    placeholder="https://example.com/background.jpg"
+                    inputmode="url"
+                    autocomplete="off"
+                    spellcheck="false"
+                  >
+                  <button id="applyBackgroundUrlButton" class="submit-button secondary" type="button">缓存并应用</button>
+                </div>
+              </div>
+
+              <p id="backgroundPreviewLabel" class="preview-label">当前使用默认渐变背景</p>
+
+              <div class="panel-actions">
+                <button id="resetThemeButton" class="submit-button" type="button">恢复默认</button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
-      <button id="openDashboardButton" class="primary" type="button">打开页面</button>
+      <button id="openDashboardButton" class="primary" type="button">打开工作台</button>
+
+      <section class="style-selector" aria-label="风格选择">
+        <div class="style-options">
+          <button class="style-option" type="button" data-style="flow">
+            <span class="style-option__title">分段流式</span>
+          </button>
+          <button class="style-option" type="button" data-style="band">
+            <span class="style-option__title">标题带网格</span>
+          </button>
+          <button class="style-option" type="button" data-style="timeline">
+            <span class="style-option__title">类时间轴分组</span>
+          </button>
+        </div>
+      </section>
+
       <p id="statusMessage" class="status" aria-live="polite"></p>
     </main>
     <script src="popup.js"></script>

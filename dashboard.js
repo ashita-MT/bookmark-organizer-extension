@@ -1,20 +1,111 @@
 const STORAGE_KEY = "bookmarkDashboardSnapshot";
 const THEME_STORAGE_KEY = "bookmarkDashboardTheme";
+const VIEW_STYLE_STORAGE_KEY = "bookmarkDashboardViewStyle";
+const LANGUAGE_STORAGE_KEY = "bookmarkDashboardLanguage";
 const COLLAPSED_FOLDERS_STORAGE_KEY = "bookmarkDashboardCollapsedFolders";
-const LAYOUT_MODE_STORAGE_KEY = "bookmarkDashboardLayoutMode";
 const DEFAULT_THEME = {
-  backgroundColor: "#171717",
-  textColor: "#e1e1e1"
+  textColor: "#dce7f5",
+  backgroundImageData: "",
+  backgroundImageName: "",
+  backgroundImageSourceType: ""
 };
+const DEFAULT_VIEW_STYLE = "flow";
+const DEFAULT_LANGUAGE = "zh";
 const DRAG_HOLD_MS = 300;
 
+const TRANSLATIONS = {
+  zh: {
+    title: "收藏夹整理页",
+    htmlLang: "zh-CN",
+    searchPlaceholder: "搜索标题或网址",
+    unnamedFolder: "未命名文件夹",
+    promptRenameFolder: "输入新的栏目名称",
+    promptCreateColumn: "新栏目名称",
+    defaultColumnName: "新书签栏",
+    statusCancelRename: "已取消重命名。",
+    statusRenamed: "栏目已重命名。",
+    statusCancelCreate: "已取消创建。",
+    statusCreated: "新栏目已创建。",
+    confirmDeleteColumn: "确认删除栏目“{title}”吗？其中内容也会一起删除。",
+    confirmDeleteColumnAgain: "请再次确认：栏目“{title}”删除后将无法恢复。",
+    statusCancelDeleteColumn: "已取消删除栏目。",
+    statusDeletedColumn: "栏目已删除。",
+    statusReordered: "栏目顺序已更新。",
+    selectionCount: "已选择 {count} 项",
+    selectAll: "全选",
+    invertSelect: "反选",
+    deleteSelected: "删除所选",
+    deleteSelectedDone: "所选内容已删除。",
+    moveTo: "移动到",
+    moveSelected: "移动所选",
+    moveSelectedDone: "所选内容已移动。",
+    rename: "重命名",
+    save: "保存",
+    edit: "编辑",
+    statusExitEdit: "已退出编辑。",
+    statusEnterEdit: "已进入编辑模式。",
+    createColumn: "新建栏目",
+    deleteColumn: "删除栏目",
+    emptyTitle: "还没有导入收藏夹",
+    emptyDescription: "点击插件里的“打开工作台”，页面会自动读取当前浏览器收藏内容。",
+    emptySearchTitle: "没有找到匹配结果",
+    emptySearchDescription: "换个关键词试试，或者清空搜索框查看所有内容。",
+    confirmDeleteSelected: "确认删除所选的 {count} 项内容吗？",
+    confirmDeleteSelectedAgain: "请再次确认：所选的 {count} 项内容删除后将无法恢复。",
+    statusCancelDeleteSelected: "已取消删除所选内容。",
+    statusSyncing: "正在同步当前收藏夹...",
+    statusSynced: "已同步当前收藏夹。",
+    statusNothingToShow: "当前没有可展示的收藏夹。"
+  },
+  en: {
+    title: "Bookmark Organizer",
+    htmlLang: "en",
+    searchPlaceholder: "Search titles or URLs",
+    unnamedFolder: "Untitled Folder",
+    promptRenameFolder: "Enter a new column name",
+    promptCreateColumn: "New column name",
+    defaultColumnName: "New Bookmark Column",
+    statusCancelRename: "Rename cancelled.",
+    statusRenamed: "Column renamed.",
+    statusCancelCreate: "Creation cancelled.",
+    statusCreated: "New column created.",
+    confirmDeleteColumn: "Delete the column “{title}”? Its contents will be removed too.",
+    confirmDeleteColumnAgain: "Please confirm again: the column “{title}” cannot be restored after deletion.",
+    statusCancelDeleteColumn: "Column deletion cancelled.",
+    statusDeletedColumn: "Column deleted.",
+    statusReordered: "Column order updated.",
+    selectionCount: "{count} selected",
+    selectAll: "Select all",
+    invertSelect: "Invert",
+    deleteSelected: "Delete selected",
+    deleteSelectedDone: "Selected items deleted.",
+    moveTo: "Move to",
+    moveSelected: "Move selected",
+    moveSelectedDone: "Selected items moved.",
+    rename: "Rename",
+    save: "Save",
+    edit: "Edit",
+    statusExitEdit: "Exited edit mode.",
+    statusEnterEdit: "Entered edit mode.",
+    createColumn: "New column",
+    deleteColumn: "Delete column",
+    emptyTitle: "No bookmarks loaded yet",
+    emptyDescription: "Click “Open workspace” in the extension and the page will load your current browser bookmarks automatically.",
+    emptySearchTitle: "No matching results",
+    emptySearchDescription: "Try another keyword, or clear the search box to view everything.",
+    confirmDeleteSelected: "Delete the selected {count} items?",
+    confirmDeleteSelectedAgain: "Please confirm again: the selected {count} items cannot be restored after deletion.",
+    statusCancelDeleteSelected: "Deleting the selected items was cancelled.",
+    statusSyncing: "Syncing current bookmarks...",
+    statusSynced: "Current bookmarks synced.",
+    statusNothingToShow: "There are no bookmarks to display right now."
+  }
+};
+
 const elements = {
+  body: document.body,
   searchInput: document.querySelector("#searchInput"),
-  lastImportedLabel: document.querySelector("#lastImportedLabel"),
-  bookmarkCount: document.querySelector("#bookmarkCount"),
   statusMessage: document.querySelector("#statusMessage"),
-  layoutSingleButton: document.querySelector("#layoutSingleButton"),
-  layoutDoubleButton: document.querySelector("#layoutDoubleButton"),
   dashboard: document.querySelector("#dashboard"),
   emptyStateTemplate: document.querySelector("#emptyStateTemplate")
 };
@@ -22,14 +113,20 @@ const elements = {
 const state = {
   snapshot: null,
   searchQuery: "",
+  language: DEFAULT_LANGUAGE,
   editingFolderId: null,
   selectedIds: new Set(),
   collapsedFolderIds: new Set(),
   dragging: null,
   dragPressTimer: null,
   dragArmedFolderId: null,
-  layoutMode: "single"
+  viewStyle: DEFAULT_VIEW_STYLE
 };
+
+function t(key, vars = {}) {
+  const template = TRANSLATIONS[state.language]?.[key] ?? TRANSLATIONS[DEFAULT_LANGUAGE][key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (_, token) => String(vars[token] ?? ""));
+}
 
 function storageGet(key) {
   return new Promise((resolve, reject) => {
@@ -75,20 +172,15 @@ function setStatus(message, isError = false) {
   elements.statusMessage.style.color = isError ? "#a13030" : "";
 }
 
-function applyLayoutMode() {
-  elements.dashboard.classList.toggle("layout-double", state.layoutMode === "double");
-  elements.layoutSingleButton.classList.toggle("is-active", state.layoutMode === "single");
-  elements.layoutDoubleButton.classList.toggle("is-active", state.layoutMode === "double");
+function applyLanguage() {
+  document.documentElement.lang = t("htmlLang");
+  document.title = t("title");
+  elements.searchInput.placeholder = t("searchPlaceholder");
 }
 
-async function setLayoutMode(mode) {
-  if (!["single", "double"].includes(mode) || state.layoutMode === mode) {
-    return;
-  }
-
-  state.layoutMode = mode;
-  applyLayoutMode();
-  await storageSet(LAYOUT_MODE_STORAGE_KEY, mode);
+function applyViewStyle() {
+  elements.body.classList.remove("view-style-flow", "view-style-band", "view-style-timeline");
+  elements.body.classList.add(`view-style-${state.viewStyle}`);
 }
 
 function cloneTree(tree) {
@@ -107,29 +199,13 @@ function getRootNode(tree) {
   return tree[0] ?? null;
 }
 
-function countBookmarks(nodes) {
-  let count = 0;
-
-  const visit = (node) => {
-    if (node.url) {
-      count += 1;
-      return;
-    }
-
-    for (const child of node.children ?? []) {
-      visit(child);
-    }
+function normalizeTheme(theme) {
+  return {
+    textColor: theme?.textColor || DEFAULT_THEME.textColor,
+    backgroundImageData: theme?.backgroundImageData || "",
+    backgroundImageName: theme?.backgroundImageName || "",
+    backgroundImageSourceType: theme?.backgroundImageSourceType || ""
   };
-
-  for (const node of nodes) {
-    visit(node);
-  }
-
-  return count;
-}
-
-function formatDate(timestamp) {
-  return new Date(timestamp).toLocaleString("zh-CN");
 }
 
 function normalizeQuery(value) {
@@ -288,29 +364,38 @@ function getLuminance(hex) {
 }
 
 function applyTheme(theme) {
-  const isDarkBackground = getLuminance(theme.backgroundColor) < 0.45;
-  const panelColor = mixColors(theme.backgroundColor, "#ffffff", isDarkBackground ? 0.08 : 0.72);
-  const panelStrongColor = mixColors(theme.backgroundColor, "#ffffff", isDarkBackground ? 0.14 : 0.88);
-  const borderColor = mixColors(theme.backgroundColor, theme.textColor, isDarkBackground ? 0.34 : 0.16);
-  const mutedColor = mixColors(theme.textColor, theme.backgroundColor, isDarkBackground ? 0.45 : 0.52);
-  const softColor = mixColors(theme.backgroundColor, theme.textColor, isDarkBackground ? 0.16 : 0.08);
+  const normalizedTheme = normalizeTheme(theme);
+  const backgroundBase = "#0a1522";
+  const isDarkBackground = true;
+  const panelColor = mixColors(backgroundBase, "#ffffff", 0.06);
+  const panelStrongColor = mixColors(backgroundBase, "#ffffff", 0.11);
+  const borderColor = mixColors(backgroundBase, normalizedTheme.textColor, 0.28);
+  const mutedColor = mixColors(normalizedTheme.textColor, backgroundBase, 0.4);
+  const softColor = mixColors(backgroundBase, normalizedTheme.textColor, 0.12);
+  const accentColor = mixColors(normalizedTheme.textColor, "#67c3ff", 0.55);
+  const accentSoftColor = mixColors(backgroundBase, accentColor, 0.18);
   const shadow = isDarkBackground
-    ? "0 12px 34px rgba(0, 0, 0, 0.35)"
+    ? "0 24px 48px rgba(0, 0, 0, 0.42)"
     : "0 10px 30px rgba(15, 23, 42, 0.08)";
+  const shadowSoft = isDarkBackground
+    ? "0 14px 28px rgba(0, 0, 0, 0.26)"
+    : "0 8px 20px rgba(15, 23, 42, 0.06)";
+  const backgroundPhoto = normalizedTheme.backgroundImageData
+    ? `url("${normalizedTheme.backgroundImageData}")`
+    : "none";
 
-  document.documentElement.style.setProperty("--bg", theme.backgroundColor);
-  document.documentElement.style.setProperty("--text", theme.textColor);
+  document.documentElement.style.setProperty("--bg", backgroundBase);
+  document.documentElement.style.setProperty("--text", normalizedTheme.textColor);
   document.documentElement.style.setProperty("--panel", panelColor);
   document.documentElement.style.setProperty("--panel-strong", panelStrongColor);
   document.documentElement.style.setProperty("--border", borderColor);
   document.documentElement.style.setProperty("--muted", mutedColor);
   document.documentElement.style.setProperty("--soft", softColor);
+  document.documentElement.style.setProperty("--accent", accentColor);
+  document.documentElement.style.setProperty("--accent-soft", accentSoftColor);
   document.documentElement.style.setProperty("--shadow", shadow);
-}
-
-async function saveTheme(theme) {
-  await storageSet(THEME_STORAGE_KEY, theme);
-  applyTheme(theme);
+  document.documentElement.style.setProperty("--shadow-soft", shadowSoft);
+  document.documentElement.style.setProperty("--bg-photo", backgroundPhoto);
 }
 
 async function saveCollapsedFolders() {
@@ -931,8 +1016,6 @@ function renderDashboard() {
   elements.dashboard.innerHTML = "";
 
   if (!state.snapshot?.tree?.length) {
-    elements.bookmarkCount.textContent = "0";
-    elements.lastImportedLabel.textContent = "还没有导入数据";
     elements.dashboard.appendChild(
       createEmptyState(
         "还没有导入收藏夹",
@@ -945,10 +1028,6 @@ function renderDashboard() {
   const filteredTree = filterTree(state.snapshot.tree, normalizeQuery(state.searchQuery));
   const rootChildren = getRenderableRootChildren(filteredTree);
   const allFolderNodes = state.snapshot.tree;
-  const bookmarkTotal = countBookmarks(rootChildren);
-
-  elements.bookmarkCount.textContent = String(bookmarkTotal);
-  elements.lastImportedLabel.textContent = `上次导入：${formatDate(state.snapshot.importedAt)}`;
 
   if (!rootChildren.length) {
     elements.dashboard.appendChild(
@@ -1028,32 +1107,18 @@ async function loadCollapsedFolders() {
   state.collapsedFolderIds = new Set(Array.isArray(savedIds) ? savedIds : []);
 }
 
-async function loadLayoutMode() {
-  const savedLayoutMode = await storageGet(LAYOUT_MODE_STORAGE_KEY);
-  state.layoutMode = savedLayoutMode === "double" ? "double" : "single";
-  applyLayoutMode();
+async function loadViewStyle() {
+  const savedViewStyle = await storageGet(VIEW_STYLE_STORAGE_KEY);
+  state.viewStyle = ["flow", "band", "timeline"].includes(savedViewStyle)
+    ? savedViewStyle
+    : DEFAULT_VIEW_STYLE;
+  applyViewStyle();
 }
 
 function attachEventListeners() {
   elements.searchInput.addEventListener("input", (event) => {
     state.searchQuery = event.target.value;
     renderDashboard();
-  });
-
-  elements.layoutSingleButton.addEventListener("click", async () => {
-    try {
-      await setLayoutMode("single");
-    } catch (error) {
-      setStatus(error.message, true);
-    }
-  });
-
-  elements.layoutDoubleButton.addEventListener("click", async () => {
-    try {
-      await setLayoutMode("double");
-    } catch (error) {
-      setStatus(error.message, true);
-    }
   });
 }
 
@@ -1062,11 +1127,491 @@ async function init() {
 
   try {
     await loadTheme();
+    await loadViewStyle();
     await loadCollapsedFolders();
-    await loadLayoutMode();
     setStatus("正在同步当前收藏夹...");
     await loadSnapshot();
     setStatus(state.snapshot ? "已同步当前收藏夹。" : "当前没有可展示的收藏夹。");
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+}
+
+function collectFolderOptions(nodes, excludedIds = new Set()) {
+  const options = [];
+
+  const visit = (node, depth = 0) => {
+    if (!isFolder(node) || excludedIds.has(node.id)) {
+      return;
+    }
+
+    if (isMovableTargetFolder(node)) {
+      options.push({
+        id: node.id,
+        title: node.title || t("unnamedFolder"),
+        depth
+      });
+    }
+
+    for (const child of node.children ?? []) {
+      visit(child, depth + 1);
+    }
+  };
+
+  for (const node of nodes) {
+    visit(node, 0);
+  }
+
+  return options;
+}
+
+async function renameFolder(node) {
+  const nextTitle = window.prompt(t("promptRenameFolder"), node.title || t("unnamedFolder"));
+  if (!nextTitle || !nextTitle.trim()) {
+    setStatus(t("statusCancelRename"));
+    return;
+  }
+
+  await bookmarksApi("update", node.id, {
+    title: nextTitle.trim()
+  });
+  await refreshSnapshot();
+  renderDashboard();
+  setStatus(t("statusRenamed"));
+}
+
+async function createColumn(folderNode) {
+  const title = window.prompt(t("promptCreateColumn"), t("defaultColumnName"));
+  if (!title || !title.trim()) {
+    setStatus(t("statusCancelCreate"));
+    return;
+  }
+
+  await bookmarksApi("create", {
+    parentId: folderNode.id,
+    title: title.trim()
+  });
+  state.collapsedFolderIds.delete(folderNode.id);
+  await refreshSnapshot();
+  renderDashboard();
+  setStatus(t("statusCreated"));
+}
+
+async function deleteColumn(folderNode) {
+  const folderTitle = folderNode.title || t("unnamedFolder");
+  const confirmed = confirmDangerAction(
+    t("confirmDeleteColumn", { title: folderTitle }),
+    t("confirmDeleteColumnAgain", { title: folderTitle }),
+    t("statusCancelDeleteColumn")
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  const parentId = folderNode.parentId;
+  let needsFallbackFolder = false;
+
+  if (parentId) {
+    const siblings = await bookmarksApi("getChildren", parentId);
+    const siblingFolders = siblings.filter((node) => isFolder(node) && node.id !== folderNode.id);
+    needsFallbackFolder = siblingFolders.length === 0;
+  }
+
+  await bookmarksApi("removeTree", folderNode.id);
+
+  if (needsFallbackFolder && parentId) {
+    await bookmarksApi("create", {
+      parentId,
+      title: t("defaultColumnName")
+    });
+  }
+
+  if (state.editingFolderId === folderNode.id) {
+    state.editingFolderId = null;
+    state.selectedIds.clear();
+  }
+
+  state.collapsedFolderIds.delete(folderNode.id);
+  await refreshSnapshot();
+  renderDashboard();
+  setStatus(t("statusDeletedColumn"));
+}
+
+function createSelectionToggle(node, folderId) {
+  const wrap = document.createElement("label");
+  wrap.className = "item-check";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = state.selectedIds.has(node.id);
+  input.addEventListener("change", () => {
+    if (input.checked) {
+      state.selectedIds.add(node.id);
+    } else {
+      state.selectedIds.delete(node.id);
+    }
+
+    state.editingFolderId = folderId;
+    renderDashboard();
+  });
+
+  wrap.append(input);
+  return wrap;
+}
+
+function createHeaderActions(allNodes) {
+  const panel = document.createElement("div");
+  panel.className = "folder-header-actions";
+
+  const summary = document.createElement("p");
+  summary.className = "selection-summary";
+  summary.textContent = t("selectionCount", { count: state.selectedIds.size });
+
+  const actionRow = document.createElement("div");
+  actionRow.className = "action-row";
+
+  const toggleRow = document.createElement("div");
+  toggleRow.className = "action-row";
+
+  const selectAllButton = document.createElement("button");
+  selectAllButton.type = "button";
+  selectAllButton.className = "action-button";
+  selectAllButton.textContent = t("selectAll");
+  selectAllButton.addEventListener("click", () => {
+    const folderNode = findNodeById(state.snapshot.tree, state.editingFolderId);
+    if (!folderNode) {
+      return;
+    }
+
+    for (const child of folderNode.children ?? []) {
+      state.selectedIds.add(child.id);
+    }
+
+    renderDashboard();
+  });
+
+  const invertSelectButton = document.createElement("button");
+  invertSelectButton.type = "button";
+  invertSelectButton.className = "action-button";
+  invertSelectButton.textContent = t("invertSelect");
+  invertSelectButton.addEventListener("click", () => {
+    const folderNode = findNodeById(state.snapshot.tree, state.editingFolderId);
+    if (!folderNode) {
+      return;
+    }
+
+    for (const child of folderNode.children ?? []) {
+      if (state.selectedIds.has(child.id)) {
+        state.selectedIds.delete(child.id);
+      } else {
+        state.selectedIds.add(child.id);
+      }
+    }
+
+    renderDashboard();
+  });
+
+  toggleRow.append(selectAllButton, invertSelectButton);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "action-button danger";
+  deleteButton.textContent = t("deleteSelected");
+  deleteButton.disabled = state.selectedIds.size === 0;
+  deleteButton.addEventListener("click", async () => {
+    try {
+      await deleteSelectedItems();
+      setStatus(t("deleteSelectedDone"));
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  });
+
+  const moveGroup = document.createElement("div");
+  moveGroup.className = "move-group";
+
+  const moveLabel = document.createElement("span");
+  moveLabel.className = "move-label";
+  moveLabel.textContent = t("moveTo");
+
+  const moveSelect = document.createElement("select");
+  moveSelect.className = "move-select";
+  const excludedIds = collectMoveTargetExcludedIds(allNodes);
+  const options = collectFolderOptions(allNodes, excludedIds);
+  moveSelect.innerHTML = options
+    .map((option) => {
+      const prefix = "  ".repeat(option.depth);
+      return `<option value="${option.id}">${prefix}${option.title}</option>`;
+    })
+    .join("");
+
+  const moveButton = document.createElement("button");
+  moveButton.type = "button";
+  moveButton.className = "action-button";
+  moveButton.textContent = t("moveSelected");
+  moveButton.disabled = state.selectedIds.size === 0 || !options.length;
+  moveButton.addEventListener("click", async () => {
+    try {
+      await moveSelectedItems(moveSelect.value);
+      setStatus(t("moveSelectedDone"));
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  });
+
+  actionRow.append(deleteButton, moveGroup);
+  moveGroup.append(moveLabel, moveSelect, moveButton);
+  panel.append(summary, toggleRow, actionRow);
+  return panel;
+}
+
+function createFolderSection(node, allNodes, pathParts = []) {
+  const section = document.createElement("section");
+  section.className = `folder-card${state.selectedIds.has(node.id) ? " is-selected" : ""}`;
+  const isCollapsed = state.collapsedFolderIds.has(node.id);
+  const isEditing = state.editingFolderId === node.id;
+  const canDrag = state.editingFolderId === null;
+
+  const header = document.createElement("div");
+  header.className = "folder-header";
+
+  const headerMain = document.createElement("div");
+  headerMain.className = "folder-header-main";
+
+  const indicator = document.createElement("span");
+  indicator.className = "folder-toggle-indicator";
+  indicator.textContent = isCollapsed ? "▸" : "▾";
+
+  const titleGroup = document.createElement("div");
+  titleGroup.className = "folder-title-group";
+
+  const heading = document.createElement(pathParts.length ? "h3" : "h2");
+  heading.textContent = node.title || t("unnamedFolder");
+  titleGroup.appendChild(heading);
+
+  if (isEditing) {
+    const titleActions = document.createElement("div");
+    titleActions.className = "folder-title-actions";
+
+    const renameButton = document.createElement("button");
+    renameButton.type = "button";
+    renameButton.className = "title-action-button";
+    renameButton.textContent = t("rename");
+    renameButton.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      try {
+        await renameFolder(node);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    titleActions.appendChild(renameButton);
+    titleGroup.appendChild(titleActions);
+  }
+
+  headerMain.append(indicator, titleGroup);
+
+  if (canDrag) {
+    attachFolderDragHandlers(header, section, node);
+  }
+
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = `folder-edit-button${isEditing ? " is-editing" : ""}`;
+  editButton.textContent = isEditing ? t("save") : t("edit");
+  editButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (isEditing) {
+      state.editingFolderId = null;
+      state.selectedIds.clear();
+      setStatus(t("statusExitEdit"));
+    } else {
+      state.editingFolderId = node.id;
+      state.selectedIds.clear();
+      setStatus(t("statusEnterEdit"));
+    }
+    renderDashboard();
+  });
+
+  header.addEventListener("click", () => {
+    if (state.collapsedFolderIds.has(node.id)) {
+      state.collapsedFolderIds.delete(node.id);
+    } else {
+      state.collapsedFolderIds.add(node.id);
+    }
+
+    saveCollapsedFolders().then(() => {
+      renderDashboard();
+    }).catch((error) => {
+      setStatus(error.message, true);
+    });
+  });
+
+  const headerActions = document.createElement("div");
+  headerActions.className = "folder-header-actions";
+  headerActions.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  if (isEditing) {
+    const createButton = document.createElement("button");
+    createButton.type = "button";
+    createButton.className = "action-button";
+    createButton.textContent = t("createColumn");
+    createButton.addEventListener("click", async () => {
+      try {
+        await createColumn(node);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    const deleteColumnButton = document.createElement("button");
+    deleteColumnButton.type = "button";
+    deleteColumnButton.className = "action-button danger";
+    deleteColumnButton.textContent = t("deleteColumn");
+    deleteColumnButton.addEventListener("click", async () => {
+      try {
+        await deleteColumn(node);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    headerActions.append(createButton, deleteColumnButton);
+    headerActions.appendChild(createHeaderActions(allNodes));
+  }
+
+  headerActions.appendChild(editButton);
+  header.append(headerMain, headerActions);
+  section.appendChild(header);
+
+  const content = document.createElement("div");
+  content.className = "folder-content";
+  content.hidden = isCollapsed;
+
+  const subfolders = (node.children ?? []).filter((child) => isFolder(child));
+  const bookmarks = (node.children ?? []).filter((child) => !isFolder(child));
+
+  if (bookmarks.length) {
+    const bookmarkGrid = document.createElement("div");
+    bookmarkGrid.className = "bookmark-grid";
+    for (const bookmark of bookmarks) {
+      bookmarkGrid.appendChild(createBookmarkCard(bookmark, node.id));
+    }
+    content.appendChild(bookmarkGrid);
+  }
+
+  if (subfolders.length) {
+    const subfolderGrid = document.createElement("div");
+    subfolderGrid.className = "subfolder-grid";
+    for (const childFolder of subfolders) {
+      subfolderGrid.appendChild(createFolderSection(childFolder, allNodes, [...pathParts, node.title].filter(Boolean)));
+    }
+    content.appendChild(subfolderGrid);
+  }
+
+  section.appendChild(content);
+  return section;
+}
+
+function renderDashboard() {
+  elements.dashboard.innerHTML = "";
+
+  if (!state.snapshot?.tree?.length) {
+    elements.dashboard.appendChild(
+      createEmptyState(t("emptyTitle"), t("emptyDescription"))
+    );
+    return;
+  }
+
+  const filteredTree = filterTree(state.snapshot.tree, normalizeQuery(state.searchQuery));
+  const rootChildren = getRenderableRootChildren(filteredTree);
+  const allFolderNodes = state.snapshot.tree;
+
+  if (!rootChildren.length) {
+    elements.dashboard.appendChild(
+      createEmptyState(t("emptySearchTitle"), t("emptySearchDescription"))
+    );
+    return;
+  }
+
+  for (const folder of rootChildren) {
+    elements.dashboard.appendChild(createFolderSection(folder, allFolderNodes));
+  }
+}
+
+async function deleteSelectedItems() {
+  if (!state.selectedIds.size) {
+    return;
+  }
+
+  const selectedCount = state.selectedIds.size;
+  const confirmed = confirmDangerAction(
+    t("confirmDeleteSelected", { count: selectedCount }),
+    t("confirmDeleteSelectedAgain", { count: selectedCount }),
+    t("statusCancelDeleteSelected")
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  for (const id of Array.from(state.selectedIds)) {
+    const liveNode = await bookmarksApi("get", id);
+    const target = liveNode[0];
+    if (!target) {
+      continue;
+    }
+
+    if (isFolder(target)) {
+      await bookmarksApi("removeTree", id);
+    } else {
+      await bookmarksApi("remove", id);
+    }
+  }
+
+  state.selectedIds.clear();
+  await refreshSnapshot();
+  renderDashboard();
+}
+
+async function loadLanguage() {
+  const savedLanguage = await storageGet(LANGUAGE_STORAGE_KEY);
+  state.language = savedLanguage === "en" ? "en" : DEFAULT_LANGUAGE;
+  applyLanguage();
+}
+
+function attachEventListeners() {
+  elements.searchInput.addEventListener("input", (event) => {
+    state.searchQuery = event.target.value;
+    renderDashboard();
+  });
+
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") {
+      return;
+    }
+
+    if (changes[LANGUAGE_STORAGE_KEY]) {
+      state.language = changes[LANGUAGE_STORAGE_KEY].newValue === "en" ? "en" : DEFAULT_LANGUAGE;
+      applyLanguage();
+      renderDashboard();
+    }
+  });
+}
+
+async function init() {
+  attachEventListeners();
+
+  try {
+    await loadLanguage();
+    await loadTheme();
+    await loadViewStyle();
+    await loadCollapsedFolders();
+    setStatus(t("statusSyncing"));
+    await loadSnapshot();
+    setStatus(state.snapshot ? t("statusSynced") : t("statusNothingToShow"));
   } catch (error) {
     setStatus(error.message, true);
   }

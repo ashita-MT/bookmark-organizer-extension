@@ -11,19 +11,11 @@
       <div id="searchBar" class="search-bar">
         <div class="search-bar__inner">
           <input id="searchInput" type="text" placeholder="搜索标题或网址" autocomplete="off" spellcheck="false">
-          <div class="meta">
-            <span id="lastImportedLabel">还没有导入数据</span>
-            <span id="bookmarkCount" class="count-pill">0</span>
-          </div>
         </div>
       </div>
 
       <div class="status-row">
         <p id="statusMessage" class="status" aria-live="polite"></p>
-        <div class="layout-switch" aria-label="栏目摆放方式">
-          <button id="layoutSingleButton" type="button" class="layout-switch__button" title="默认排版">一</button>
-          <button id="layoutDoubleButton" type="button" class="layout-switch__button" title="一行两个栏目">二</button>
-        </div>
       </div>
 
       <main id="dashboard" class="dashboard"></main>
@@ -32,7 +24,7 @@
     <template id="emptyStateTemplate">
       <section class="empty-state">
         <h2>还没有导入收藏夹</h2>
-        <p>点击插件里的“导入当前收藏夹”，把浏览器现有收藏内容读取到这个页面里。</p>
+        <p>点击插件里的“打开工作台”，页面会自动读取当前浏览器收藏内容。</p>
       </section>
     </template>
 
