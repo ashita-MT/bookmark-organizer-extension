@@ -40,7 +40,6 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 
 ## 工作方式 / How It Works
 
-
 1. 打开扩展弹窗。
 2. 进入独立工作台页面。
 3. 页面自动读取当前 Chrome 书签。
@@ -53,7 +52,6 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 
 ## 项目结构 / Project Structure
 
-
 - `popup.html` / `popup.js`：扩展弹窗入口
 - `dashboard.html` / `dashboard.js`：主工作台与整理逻辑
 - `popup.css` / `dashboard.css`：界面样式
@@ -65,7 +63,6 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 - `manifest.json`: Chrome extension manifest
 
 ## 安装方式 / Installation
-
 
 1. 下载或克隆这个仓库。
 2. 打开 `chrome://extensions`。
@@ -80,7 +77,6 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 5. Select the project folder, for example `..\bookmark-organizer-extension`.
 
 ## 权限说明 / Permissions
-
 
 - `bookmarks`：读取和整理书签
 - `storage`：保存主题、布局和界面状态
