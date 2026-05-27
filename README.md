@@ -45,6 +45,7 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 3. The dashboard reads the current Chrome bookmarks tree.
 4. Browse, search, and organize bookmarks in a larger workspace.
 
+
 1. 打开扩展弹窗。
 2. 进入独立工作台页面。
 3. 页面自动读取当前 Chrome 书签。
@@ -56,6 +57,7 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 - `dashboard.html` / `dashboard.js`: main bookmark dashboard
 - `popup.css` / `dashboard.css`: UI styles
 - `manifest.json`: Chrome extension manifest
+
 
 - `popup.html` / `popup.js`：扩展弹窗入口
 - `dashboard.html` / `dashboard.js`：主工作台与整理逻辑
@@ -70,6 +72,7 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 4. Click `Load unpacked`.
 5. Select the project folder, for example `..\bookmark-organizer-extension`.
 
+
 1. 下载或克隆这个仓库。
 2. 打开 `chrome://extensions`。
 3. 开启“开发者模式”。
@@ -81,6 +84,7 @@ Instead of managing bookmarks inside the default browser tree, this extension op
 - `bookmarks`: read and update bookmark data
 - `storage`: save theme, layout, and UI state
 - `tabs`: open the standalone dashboard page
+
 
 - `bookmarks`：读取和整理书签
 - `storage`：保存主题、布局和界面状态
