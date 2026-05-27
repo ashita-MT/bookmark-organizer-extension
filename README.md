@@ -24,7 +24,7 @@ Inside the workspace, you can browse by folder, search titles or URLs, organize 
 - 支持自定义字体颜色
 - 支持本地上传或远程缓存背景图
 - 支持中英文界面切换
-- 支持三种页面风格切换：分段流式、标题带网格、类时间轴分组
+- 支持三种页面风格切换：无界流式、卡片通栏、时间轴式
 
 - Reads the current Chrome bookmarks tree automatically
 - Opens a standalone workspace for the full bookmark collection
@@ -37,17 +37,17 @@ Inside the workspace, you can browse by folder, search titles or URLs, organize 
 - Supports custom text colors
 - Supports local background uploads and remote background caching
 - Supports Chinese and English UI switching
-- Supports three visual styles: Flow Layout, Band Grid, and Timeline-like Grouping
+- Supports three visual styles: Borderless Flow, Full-width Cards, and Timeline Style
 
 ## 页面风格 / View Styles
 
-`分段流式 / Flow Layout`  
+`无界流式 / Borderless Flow`  
 弱化分组容器感，更像连续内容流，适合轻量浏览。
 
-`标题带网格 / Band Grid`  
+`卡片通栏 / Full-width Cards`  
 用更明确的标题带和卡片网格组织内容，适合在清晰层级下整理书签。
 
-`类时间轴分组 / Timeline-like Grouping`  
+`时间轴式 / Timeline Style`  
 通过节点和纵向线条强化章节感，适合希望页面更有节奏的浏览方式。
 
 ## 工作方式 / How It Works
